@@ -171,8 +171,20 @@ app.delete("/delete", authenticateToken, async (req, res) => {
 
 //  Start Server (AFTER defining routes)
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
 
 //  Debugging: List all routes
 const listEndpoints = require("express-list-endpoints");
 console.log(listEndpoints(app));
+
+app.get("/auth/github",
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
+app.get("/auth/github/callback",
+  passport.authenticate("github", { failureRedirect: "/" }),
+  (req, res) => {
+    res.json({ message: "GitHub Login Successful", user: req.user });
+  }
+);
+
