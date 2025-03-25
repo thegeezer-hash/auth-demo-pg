@@ -1,0 +1,16 @@
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+
+  console.log("🔍 Token from URL:", token); // Debugging
+
+  if (token) {
+    localStorage.setItem("token", token);
+
+    axios.get("http://localhost:5001/user", { 
+      headers: { Authorization: `Bearer ${token}` } 
+    })
+    .then(response => setUser(response.data))
+    .catch(error => console.error("Failed to fetch user", error));
+  }
+}, []);
