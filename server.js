@@ -30,7 +30,7 @@ app.use(passport.session());
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: "http://localhost:5001/auth/github/callback"
+  callbackURL: "http://localhost:5002/auth/github/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     let user = await pool.query("SELECT * FROM users WHERE email = $1", [profile.username + "@github.com"]);
@@ -105,7 +105,7 @@ app.get("/auth/github/callback", async (req, res) => {
       client_id: process.env.GITHUB_CLIENT_ID,
       client_secret: process.env.GITHUB_CLIENT_SECRET,
       code: code,
-      redirect_uri: "http://localhost:5001/auth/github/callback"
+      redirect_uri: "http://localhost:5002/auth/github/callback"
     }, { headers: { accept: "application/json" } });
 
     console.log(" GitHub Token Response:", tokenResponse.data);
@@ -195,7 +195,7 @@ app.post("/login", async (req, res) => {
 });
 
 //  Start Server
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
 
 //  Debugging: List all routes

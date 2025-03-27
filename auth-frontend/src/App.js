@@ -29,7 +29,7 @@ const App = () => {
           localStorage.setItem("token", token);
           window.history.replaceState({}, document.title, "/dashboard");
 
-          axios.get("http://localhost:5001/user", {
+          axios.get("http://localhost:5002/user", {
             headers: { Authorization: `Bearer ${token}` }
           })
           .then(res => {
@@ -68,7 +68,7 @@ const App = () => {
 
 const Login = ({ user, loading }) => {
   const handleGitHubLogin = () => {
-    window.location.href = "http://localhost:5001/auth/github";
+    window.location.href = "http://localhost:5002/auth/github";
   };
 
   if (loading) return <p className="text-center mt-5">Checking session...</p>;

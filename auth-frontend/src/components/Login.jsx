@@ -3,7 +3,7 @@ import React from "react";
 const Login = () => {
   const handleGitHubLogin = () => {
     console.log("🔁 Redirecting to GitHub..."); // Debugging
-    window.location.href = "http://localhost:5001/auth/github";
+    window.location.href = "http://localhost:5002/auth/github";
   };
 
   return (

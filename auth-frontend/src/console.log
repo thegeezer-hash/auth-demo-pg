@@ -7,7 +7,7 @@ useEffect(() => {
   if (token) {
     localStorage.setItem("token", token);
 
-    axios.get("http://localhost:5001/user", { 
+    axios.get("http://localhost:5002/user", { 
       headers: { Authorization: `Bearer ${token}` } 
     })
     .then(response => setUser(response.data))
