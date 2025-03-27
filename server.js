@@ -6,7 +6,7 @@ const pool = require("./db");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const axios = require("axios"); // 🔥 Added axios for API requests
+const axios = require("axios"); //  Added axios for API requests
 const GitHubStrategy = require("passport-github2").Strategy;
 const authenticateToken = require("./authMiddleware"); // Import middleware
 
@@ -217,6 +217,16 @@ app.get("/clients", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+app.get('/clients', (req, res) => {
+  // Return some dummy data or real data from your database
+  res.json([
+    { id: 1, name: 'Alice', email: 'alice@example.com' },
+    { id: 2, name: 'Bob', email: 'bob@example.com' }
+  ]);
+});
+
 
 //  POST: add new client
 app.post("/clients", authenticateToken, async (req, res) => {

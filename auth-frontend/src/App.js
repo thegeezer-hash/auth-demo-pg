@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import "bootstrap/dist/css/bootstrap.min.css";
+import ClientsPage from "./ClientsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -21,7 +22,7 @@ const App = () => {
         const now = Date.now() / 1000;
 
         if (decoded.exp < now) {
-          console.warn("⚠️ Token expired");
+          console.warn("Token expired");
           localStorage.removeItem("token");
           setUser(null);
           setLoading(false);
@@ -29,18 +30,19 @@ const App = () => {
           localStorage.setItem("token", token);
           window.history.replaceState({}, document.title, "/dashboard");
 
-          axios.get("http://localhost:5002/user", {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          .then(res => {
-            setUser(res.data);
-            setLoading(false);
-          })
-          .catch(() => {
-            localStorage.removeItem("token");
-            setUser(null);
-            setLoading(false);
-          });
+          axios
+            .get("http://localhost:5002/user", {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((res) => {
+              setUser(res.data);
+              setLoading(false);
+            })
+            .catch(() => {
+              localStorage.removeItem("token");
+              setUser(null);
+              setLoading(false);
+            });
         }
       } catch (err) {
         console.error("Invalid token", err);
@@ -57,9 +59,11 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Login user={user} loading={loading} />} />
-        <Route path="/dashboard" element={
-          user ? <Dashboard user={user} setUser={setUser} /> : <Navigate to="/" />
-        } />
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard user={user} setUser={setUser} /> : <Navigate to="/" />}
+        />
+        <Route path="/clients" element={user ? <ClientsPage /> : <Navigate to="/" />} />
         <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
       </Routes>
     </Router>
@@ -77,7 +81,9 @@ const Login = ({ user, loading }) => {
     <div className="container text-center mt-5">
       <h1>GitHub OAuth Demo</h1>
       {user ? (
-        <p>You're already logged in. Go to <a href="/dashboard">Dashboard</a>.</p>
+        <p>
+          You're already logged in. Go to <Link to="/dashboard">Dashboard</Link>.
+        </p>
       ) : (
         <button className="btn btn-dark btn-lg" onClick={handleGitHubLogin}>
           <i className="fab fa-github"></i> Login with GitHub
@@ -99,9 +105,16 @@ const Dashboard = ({ user, setUser }) => {
       <h1>Dashboard</h1>
       <img src={user.avatar} className="rounded-circle mb-3" width="100" alt="Avatar" />
       <h3>{user.email}</h3>
-      <button className="btn btn-danger mt-3" onClick={handleLogout}>Logout</button>
+      <div className="mt-3">
+        <Link to="/clients" className="btn btn-primary me-2">
+          Clients
+        </Link>
+        <button className="btn btn-danger" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
     </div>
   );
-};
+};  
 
 export default App;
