@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-// ✅ Middleware to check if user is authenticated
+//  Middleware to check if user is authenticated
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];

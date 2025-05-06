@@ -22,6 +22,7 @@ app.use(session({
   saveUninitialized: true
 }));
 
+
 //  Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -59,6 +60,35 @@ passport.deserializeUser(async (id, done) => {
     done(null, user.rows[0]);
   } catch (err) {
     done(err, null);
+  }
+});
+// Get all clients for logged-in user
+app.get("/clients", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const result = await pool.query("SELECT * FROM clients WHERE user_id = $1", [userId]);
+  res.json(result.rows);
+});
+app.put("/clients/:id", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const clientId = req.params.id;
+  const { name, email, phone } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE clients 
+       SET name = $1, email = $2, phone = $3 
+       WHERE id = $4 AND user_id = $5 
+       RETURNING *`,
+      [name, email, phone, clientId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Client not found or not authorized" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: "Update failed" });
   }
 });
 
@@ -100,6 +130,17 @@ app.get("/auth/github/callback", async (req, res) => {
       return res.redirect("http://localhost:3000?error=missing_code");
     }
 
+    // Add a new client
+app.post("/clients", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { name, email, phone } = req.body;
+  const result = await pool.query(
+    "INSERT INTO clients (user_id, name, email, phone) VALUES ($1, $2, $3, $4) RETURNING *",
+    [userId, name, email, phone]
+  );
+  res.json(result.rows[0]);
+});
+
     //  Exchange the code for an access token
     const tokenResponse = await axios.post("https://github.com/login/oauth/access_token", {
       client_id: process.env.GITHUB_CLIENT_ID,
@@ -127,10 +168,10 @@ app.get("/auth/github/callback", async (req, res) => {
     const email = userResponse.data.email || `${userResponse.data.login}@github.com`;
 
     //  Save user in database (or check if exists)
-    let user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    let user = await pool.query("SELECT * FROM users WHERE email = $1", [userData.email]);
     if (user.rows.length === 0) {
       user = await pool.query(
-        "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
+        "INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING *",
         [email, "GITHUB_AUTH"]
       );
     }
@@ -151,7 +192,7 @@ app.get("/auth/github/callback", async (req, res) => {
 
 //  User Registration Route
 app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
 
   try {
     const userExists = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -160,7 +201,7 @@ app.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [email, hashedPassword]);
+    await pool.query("INSERT INTO users (email, password, username) VALUES ($1, $2)", [email, hashedPassword]);
 
     res.json({ message: "User registered successfully" });
   } catch (err) {
@@ -214,6 +255,21 @@ app.get("/clients", authenticateToken, async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(" Error fetching clients:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/profile", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await pool.query("SELECT id, email, username FROM users WHERE id = $1", [userId]);
+    const user = result.rows[0];
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -272,6 +328,9 @@ app.patch("/clients/:id", authenticateToken, async (req, res) => {
 app.delete("/clients/:id", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const clientId = req.params.id;
+  await pool.query("DELETE FROM clients WHERE id = $1 AND user_id = $2", [clientId, userId]);
+  res.json({ message: "Client deleted" });
+});
 
   try {
     const result = await pool.query(
@@ -288,4 +347,4 @@ app.delete("/clients/:id", authenticateToken, async (req, res) => {
     console.error(" Error deleting client:", err.message);
     res.status(500).json({ message: "Server error" });
   }
-});
+  ;

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from "react-router-dom";
+import Profile from "./Profile";
+import EmailLogin from "./EmailLogin";
+import ClientsPage from "./ClientsPage";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ClientsPage from "./ClientsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -63,7 +65,14 @@ const App = () => {
           path="/dashboard"
           element={user ? <Dashboard user={user} setUser={setUser} /> : <Navigate to="/" />}
         />
-        <Route path="/clients" element={user ? <ClientsPage /> : <Navigate to="/" />} />
+        <Route
+          path="/clients"
+          element={user ? <ClientsPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <Profile /> : <Navigate to="/" />}
+        />
         <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
       </Routes>
     </Router>
@@ -85,9 +94,12 @@ const Login = ({ user, loading }) => {
           You're already logged in. Go to <Link to="/dashboard">Dashboard</Link>.
         </p>
       ) : (
-        <button className="btn btn-dark btn-lg" onClick={handleGitHubLogin}>
-          <i className="fab fa-github"></i> Login with GitHub
-        </button>
+        <>
+          <button className="btn btn-dark btn-lg mb-3" onClick={handleGitHubLogin}>
+            <i className="fab fa-github"></i> Login with GitHub
+          </button>
+          <EmailLogin setUser={null} />
+        </>
       )}
     </div>
   );
@@ -103,18 +115,16 @@ const Dashboard = ({ user, setUser }) => {
   return (
     <div className="container text-center mt-5">
       <h1>Dashboard</h1>
+      
       <img src={user.avatar} className="rounded-circle mb-3" width="100" alt="Avatar" />
       <h3>{user.email}</h3>
       <div className="mt-3">
-        <Link to="/clients" className="btn btn-primary me-2">
-          Clients
-        </Link>
-        <button className="btn btn-danger" onClick={handleLogout}>
-          Logout
-        </button>
+        <Link to="/clients" className="btn btn-primary me-2">Clients</Link>
+        <Link to="/profile" className="btn btn-secondary me-2">Profile</Link>
+        <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
       </div>
     </div>
   );
-};  
+};
 
 export default App;
