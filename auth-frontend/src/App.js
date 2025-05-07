@@ -6,6 +6,7 @@ import ClientsPage from "./ClientsPage";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import "bootstrap/dist/css/bootstrap.min.css";
+import ClientDetails from "./ClientDetails";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -73,6 +74,7 @@ const App = () => {
           path="/profile"
           element={user ? <Profile /> : <Navigate to="/" />}
         />
+        <Route path="/clients/:id" element={user ? <ClientDetails /> : <Navigate to="/" />} />
         <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
       </Routes>
     </Router>
@@ -122,6 +124,7 @@ const Dashboard = ({ user, setUser }) => {
         <Link to="/clients" className="btn btn-primary me-2">Clients</Link>
         <Link to="/profile" className="btn btn-secondary me-2">Profile</Link>
         <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
+        
       </div>
     </div>
   );

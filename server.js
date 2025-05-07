@@ -244,18 +244,23 @@ const listEndpoints = require("express-list-endpoints");
 console.log(listEndpoints(app));
 
 //  GET all clients for logged-in user
-app.get("/clients", authenticateToken, async (req, res) => {
+app.get("/clients/:id", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
+  const clientId = req.params.id;
 
   try {
     const result = await pool.query(
-      "SELECT * FROM clients WHERE user_id = $1 ORDER BY id DESC",
-      [userId]
+      "SELECT * FROM clients WHERE id = $1 AND user_id = $2",
+      [clientId, userId]
     );
-    res.json(result.rows);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error(" Error fetching clients:", err.message);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Failed to fetch client" });
   }
 });
 

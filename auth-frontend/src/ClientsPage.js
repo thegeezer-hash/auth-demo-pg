@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([]);
@@ -8,16 +10,14 @@ const ClientsPage = () => {
   const [editClient, setEditClient] = useState({ name: "", email: "", phone: "" });
   const [searchTerm, setSearchTerm] = useState("");
 
-
-  // Load all clients on component mount
   useEffect(() => {
     fetch("http://localhost:5002/clients", {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     })
-      .then(res => res.json())
-      .then(data => setClients(data))
+      .then((res) => res.json())
+      .then((data) => setClients(data))
       .catch(() => setError("Could not load clients"));
   }, []);
 
@@ -34,9 +34,9 @@ const ClientsPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(newClient)
+        body: JSON.stringify(newClient),
       });
 
       const added = await res.json();
@@ -53,8 +53,8 @@ const ClientsPage = () => {
       await fetch(`http://localhost:5002/clients/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
       setClients(clients.filter((client) => client.id !== id));
     } catch (err) {
@@ -77,17 +77,21 @@ const ClientsPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(editClient)
+        body: JSON.stringify(editClient),
       });
 
       const updated = await res.json();
-
-      setClients(clients.map(c => c.id === id ? updated : c));
+      setClients(clients.map((c) => (c.id === id ? updated : c)));
       setEditingId(null);
     } catch (err) {
       setError("Failed to update client");
     }
   };
+
+  const filteredClients = clients.filter((client) =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
     <div className="container mt-5">
@@ -129,17 +133,19 @@ const ClientsPage = () => {
       </form>
 
       {error && <p className="text-danger text-center">{error}</p>}
-        <div className="mb-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search clients..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-       </div>
+      </div>
+
       <ul className="list-group">
-        {clients.map((client) => (
+        {filteredClients.map((client) => (
           <li key={client.id} className="list-group-item">
             {editingId === client.id ? (
               <form onSubmit={(e) => handleEditSubmit(e, client.id)} className="row g-2">
@@ -179,6 +185,8 @@ const ClientsPage = () => {
                 <div>
                   <button className="btn btn-sm btn-outline-warning me-2" onClick={() => startEditing(client)}>Edit</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(client.id)}>Delete</button>
+                  <button className="btn btn-sm btn-outline-info me-2" onClick={() => window.location.href = `/clients/${client.id}`}>View</button>
+                  <Link to={`/clients/${client.id}`} className="btn btn-sm btn-outline-info me-2">View</Link>
                 </div>
               </div>
             )}
@@ -186,6 +194,7 @@ const ClientsPage = () => {
         ))}
       </ul>
     </div>
+    
   );
 };
 
